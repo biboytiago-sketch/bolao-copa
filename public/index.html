@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bolão Copa - Brasil x Escócia</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 20px; display: flex; justify-content: center; }
+        .card { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { text-align: center; color: #1a472a; margin-top: 0; }
+        label { font-weight: bold; display: block; margin: 15px 0 5px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        .placar-container { display: flex; justify-content: space-between; align-items: center; margin: 20px 0; background: #e8f5e9; padding: 15px; border-radius: 8px; }
+        .time { text-align: center; font-weight: bold; width: 40%; }
+        .gols { width: 50px; text-align: center; font-size: 20px; }
+        button { width: 100%; background: #2e7d32; color: white; border: none; padding: 12px; font-size: 18px; border-radius: 6px; cursor: pointer; margin-top: 15px; font-weight: bold; }
+        button:hover { background: #1b5e20; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>🏆 Bolão Copa 🏆</h2>
+    <p style="text-align: center; color: #666;">Faça sua aposta oficial</p>
+
+    <!-- Dados do Usuário -->
+    <label for="nome">Seu Nome:</label>
+    <input type="text" id="nome" placeholder="Digite seu nome completo">
+
+    <label for="telefone">Telefone (com DDD):</label>
+    <input type="text" id="telefone" placeholder="+5561999999999">
+
+    <label for="valor">Valor da Aposta:</label>
+    <select id="valor">
+        <option value="10">R$ 10,00</option>
+        <option value="20">R$ 20,00</option>
+        <option value="30">R$ 30,00</option>
+    </select>
+
+    <!-- Placar do Jogo -->
+    <div class="placar-container">
+        <div class="time">🇧🇷 Brasil</div>
+        <input type="number" id="golsBrasil" class="gols" min="0" value="0">
+        <span>X</span>
+        <input type="number" id="golsEscocia" class="gols" min="0" value="0">
+        <div class="time">🏴󠁧󠁢󠁳󠁣󠁴󠁿 Escócia</div>
+    </div>
+
+    <button onclick="enviarPalpite()">Confirmar e Enviar Aposta</button>
+</div>
+
+<!-- Scripts do Socket.io -->
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+
+    function enviarPalpite() {
+        const nome = document.getElementById('nome').value;
+        const telefone = document.getElementById('telefone').value;
+        const valor = document.getElementById('valor').value;
+        const golsBrasil = document.getElementById('golsBrasil').value;
+        const golsEscocia = document.getElementById('golsEscocia').value;
+
+        if(!nome || !telefone) {
+            alert('Por favor, preencha seu nome e telefone!');
+            return;
+        }
+
+        // Monta o objeto com o jogo fixado
+        const dadosAposta = {
+            nome: nome,
+            telefone: telefone,
+            valor: valor,
+            palpiteTimeA: `Brasil ${golsBrasil}`,
+            palpiteTimeB: `${golsEscocia} Escócia`
+        };
+
+        // Envia via WebSocket para o servidor
+        socket.emit('novaAposta', dadosAposta);
+
+        alert('Aposta registrada! Você receberá a confirmação por SMS.');
+        
+        // Reseta o formulário
+        document.getElementById('nome').value = '';
+        document.getElementById('telefone').value = '';
+    }
+</script>
+</body>
+</html>

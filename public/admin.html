@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel Admin - Bolão</title>
+    <style>
+        body { font-family: Arial, sans-serif; background: #121212; color: white; padding: 20px; }
+        .login-box { background: #1e1e1e; padding: 30px; border-radius: 8px; max-width: 350px; margin: 100px auto; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .login-box input { width: 100%; padding: 10px; margin: 10px 0; border-radius: 4px; border: 1px solid #333; background: #2a2a2a; color: white; box-sizing: border-box; }
+        .login-box button { width: 100%; padding: 10px; background: #007bff; border: none; color: white; font-weight: bold; border-radius: 4px; cursor: pointer; }
+        .painel { display: none; max-width: 800px; margin: 0 auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: #1e1e1e; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #333; }
+        th { background: #007bff; }
+        .total { font-size: 20px; background: #28a745; padding: 15px; border-radius: 6px; display: inline-block; margin-bottom: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<!-- Tela de Login Ocultável -->
+<div id="telaLogin" class="login-box">
+    <h3>🔐 Painel Administrativo</h3>
+    <input type="text" id="userAdmin" placeholder="Usuário">
+    <input type="password" id="passAdmin" placeholder="Senha">
+    <button onclick="fazerLogin()">Entrar</button>
+</div>
+
+<!-- Painel de Controle Secreto -->
+<div id="telaPainel" class="painel">
+    <h2>🎛️ Controle de Apostas (Brasil x Escócia)</h2>
+    <div class="total" id="caixaTotal">Total Arrecadado: R$ 0,00</div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Participante</th>
+                <th>Telefone</th>
+                <th>Valor Pago</th>
+                <th>Palpite</th>
+            </tr>
+        </thead>
+        <tbody id="tabelaApostas">
+            <!-- Os palpites vão aparecer aqui via JS -->
+        </tbody>
+    </table>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+    const socket = io();
+    let totalDinheiro = 0;
+
+    async function fazerLogin() {
+        const usuario = document.getElementById('userAdmin').value;
+        const senha = document.getElementById('passAdmin').value;
+
+        const resposta = await fetch('/api/admin/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ usuario, senha })
+        });
+
+        if (resposta.ok) {
+            document.getElementById('telaLogin').style.display = 'none';
+            document.getElementById('telaPainel').style.display = 'block';
+        } else {
+            alert('Acesso negado! Usuário ou senha incorretos.');
+        }
+    }
+
+    // Recebe e desenha a tabela na tela
+    function renderizarApostas(listaApostas) {
+        const tabela = document.getElementById('tabelaApostas');
+        tabela.innerHTML = '';
+        totalDinheiro = 0;
+
+        listaApostas.forEach(aposta => {
+            totalDinheiro += Number(aposta.valor);
+            
+            tabela.innerHTML += `
+                <tr>
+                    <td>${aposta.nome}</td>
+                    <td>${aposta.telefone}</td>
+                    <td style="color: #28a745; font-weight:bold;">R$ ${aposta.valor},00</td>
+                    <td><span style="background:#333; padding:4px 8px; border-radius:4px;">${aposta.palpiteTimeA} x ${aposta.palpiteTimeB}</span></td>
+                </tr>
+            `;
+        });
+
+        document.getElementById('caixaTotal').innerText = `Total Arrecadado: R$ ${totalDinheiro},00`;
+    }
+
+    // Ouvintes do Socket para atualizar em tempo real
+    socket.on('historicoApostas', (dados) => renderizarApostas(dados));
+    socket.on('atualizarApostas', (dados) => renderizarApostas(dados));
+</script>
+</body>
+</html>

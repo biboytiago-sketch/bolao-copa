@@ -8,7 +8,7 @@ const twilio = require('twilio')(accountSid, authToken);
 // Configuração da API de SMS (Twilio) - Substitua com suas credenciais após criar a conta
 const accountSid = 'USf347566150704729fb04df47151ef0bd'; 
 const authToken = '6P37M6XTPFP5B8NG6BR7WM1L';   
-const twilioNumero = '+61992518130'; // Seu número virtual Twilio
+const twilioNumero = '+5561992518130'; // Seu número virtual Twilio
 // Descomente quando instalar o pacote
 
 app.use(express.json());
